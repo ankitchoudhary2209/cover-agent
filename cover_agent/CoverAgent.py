@@ -29,6 +29,7 @@ class CoverAgent:
             additional_instructions=args.additional_instructions,
             llm_model=args.model,
             api_base=args.api_base,
+            failed_test_case_visibility = args.failed_test_case_visibility
         )
 
     def _validate_paths(self):
@@ -58,7 +59,6 @@ class CoverAgent:
         test_results_list = []
 
         self.test_gen.initial_test_suite_analysis()
-
         while (
             self.test_gen.current_coverage < (self.test_gen.desired_coverage / 100)
             and iteration_count < self.args.max_iterations
@@ -69,7 +69,6 @@ class CoverAgent:
             self.logger.info(f"Desired Coverage: {self.test_gen.desired_coverage}%")
 
             generated_tests_dict = self.test_gen.generate_tests(max_tokens=4096)
-
             for generated_test in generated_tests_dict.get("new_tests", []):
                 test_result = self.test_gen.validate_test(
                     generated_test, generated_tests_dict
@@ -82,7 +81,6 @@ class CoverAgent:
                 self.test_gen.desired_coverage / 100
             ):
                 self.test_gen.run_coverage()
-
         if self.test_gen.current_coverage >= (self.test_gen.desired_coverage / 100):
             self.logger.info(
                 f"Reached above target coverage of {self.test_gen.desired_coverage}% (Current Coverage: {round(self.test_gen.current_coverage * 100, 2)}%) in {iteration_count} iterations."
@@ -95,7 +93,6 @@ class CoverAgent:
                 sys.exit(2)
             else:
                 self.logger.info(failure_message)
-
         ReportGenerator.generate_report(
             test_results_list, self.args.report_filepath
         )
