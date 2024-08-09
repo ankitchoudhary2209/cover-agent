@@ -441,6 +441,7 @@ class UnitTestGenerator:
                 original_import_section = match.group(2)
                 original_import_section = original_import_section
                 print("original_import_section are: ", original_import_section)
+                additional_imports.append("testing")
                 additional_imports_filtered = [f"\"{Import}\"" for Import in additional_imports if Import not in original_import_section]
                 print("additional_imports_filtered are: ", additional_imports_filtered)
                 # if relevant_line_number_to_insert_imports_after and additional_imports and additional_imports not in processed_test:
