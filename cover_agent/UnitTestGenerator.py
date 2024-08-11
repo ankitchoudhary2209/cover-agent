@@ -588,7 +588,6 @@ class UnitTestGenerator:
                         # Coverage has not increased, rollback the test by removing it from the test file
                         with open(self.test_file_path, "w") as test_file:
                             test_file.write(original_content)
-                        self.coverage_failure_testcases_as_comments(fail_details,additional_imports)
                         self.logger.info(
                             "Test did not increase coverage. Rolling back."
                         )
@@ -606,6 +605,8 @@ class UnitTestGenerator:
                                 "error_message": "did not increase code coverage",
                             }
                         )  
+                        self.coverage_failure_testcases_as_comments(fail_details,additional_imports)
+
                         if 'WANDB_API_KEY' in os.environ:
                             root_span = Trace(
                                 name="fail_details_"+datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
