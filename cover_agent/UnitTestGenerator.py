@@ -383,6 +383,57 @@ class UnitTestGenerator:
             test_file.write(processed_test)
         return failure_details
 
+    def coverage_failure_testcases_as_comments(self, tc_details, additional_imports):
+        relevant_line_number_to_insert_tests_after = self.relevant_line_number_to_insert_tests_after
+    
+        # Prepare the failure details as comments
+        failure_details = []
+        failure_details.append("\n/* Coverage Failure Details */\n")
+        failure_details.append(f"/* Status: {tc_details['status']} */\n")
+        failure_details.append(f"/* Reason: {tc_details['reason']} */\n")
+        failure_details.append(f"/* Exit Code: {tc_details['exit_code']} */\n")
+        failure_details.append(f"/* Stderr: {tc_details['stderr']} */\n")
+        failure_details.append(f"/* Test Behaviour: {tc_details['test']['test_behavior']} */\n")
+        failure_details.append(f"/* Error: {tc_details['stdout'].split('coverage:')[0]} */\n")
+        failure_details.append(f"/* Test Name: {tc_details['test']['test_name']} */\n")
+        failure_details.append(f"/* Test Code: {tc_details['test']['test_code']} */\n")
+        failure_details.append(f"/* Test Tags: {tc_details['test']['test_tags']} */\n")
+        failure_details.append(f"/* Coverage Report: {self.code_coverage_report_path} */\n")
+    
+        # Add additional imports as comments
+        if additional_imports:
+            failure_details.append("/* Additional Imports:\n")
+            for imp in additional_imports.split("\n"):
+                if imp.strip():  # Avoid adding empty lines
+                    failure_details.append(f" * {imp.strip()}\n")
+            failure_details.append(" */\n")
+    
+        failure_details_indented = ''.join(failure_details)
+    
+        # Read the current content of the test file
+        with open(self.test_file_path, "r") as test_file:
+            original_content = test_file.read()
+    
+        original_content_lines = original_content.split("\n")
+        failure_details_lines = failure_details_indented.split("\n")
+    
+        # Insert the failure details after the relevant line
+        processed_lines = (
+            original_content_lines[:relevant_line_number_to_insert_tests_after]
+            + failure_details_lines
+            + original_content_lines[relevant_line_number_to_insert_tests_after:]
+        )
+    
+        processed_content = "\n".join(processed_lines)
+    
+        # Write the modified content back to the test file
+        with open(self.test_file_path, "w") as test_file:
+            test_file.write(processed_content)
+    
+        return failure_details
+
+        
+    
     def parse_packages(self, input_str):
         input_str = input_str.replace('import', '').replace('(', '').replace(')', '').strip()
         packages = [pkg.strip('" \t') for pkg in input_str.splitlines() if pkg.strip()]
@@ -537,6 +588,7 @@ class UnitTestGenerator:
                         # Coverage has not increased, rollback the test by removing it from the test file
                         with open(self.test_file_path, "w") as test_file:
                             test_file.write(original_content)
+                        self.coverage_failure_testcases_as_comments(fail_details,additional_imports)
                         self.logger.info(
                             "Test did not increase coverage. Rolling back."
                         )
