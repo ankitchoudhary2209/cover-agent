@@ -403,7 +403,7 @@ class UnitTestGenerator:
         # Add additional imports as comments
         if additional_imports:
             failure_details.append("/* Additional Imports:\n")
-            for imp in additional_imports.split("\n"):
+            for imp in additional_imports:
                 if imp.strip():  # Avoid adding empty lines
                     failure_details.append(f" * {imp.strip()}\n")
             failure_details.append(" */\n")
@@ -565,7 +565,7 @@ class UnitTestGenerator:
                             outputs=fail_details)
                         root_span.log(name='inference')
                     if self.failed_test_case_visibility:
-                        self.append_failure_details_as_comments(fail_details,additional_imports)
+                        self.append_failure_details_as_comments(fail_details,additional_imports_filtered)
                     return fail_details
 
                 # If test passed, check for coverage increase
@@ -605,7 +605,7 @@ class UnitTestGenerator:
                                 "error_message": "did not increase code coverage",
                             }
                         )  
-                        self.coverage_failure_testcases_as_comments(fail_details,additional_imports)
+                        self.coverage_failure_testcases_as_comments(fail_details,additional_imports_filtered)
 
                         if 'WANDB_API_KEY' in os.environ:
                             root_span = Trace(
