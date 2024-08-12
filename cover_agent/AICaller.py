@@ -59,7 +59,7 @@ class AICaller:
             completion_params["api_base"] = self.api_base
 
         response = litellm.completion(**completion_params)
-
+        print(response)
         chunks = []
         print("Streaming results from LLM model...")
         try:
@@ -74,7 +74,8 @@ class AICaller:
         print("\n")
 
         model_response = litellm.stream_chunk_builder(chunks, messages=messages)
-
+        print(model_response)
+        exit(0)
         if 'WANDB_API_KEY' in os.environ:
             root_span = Trace(
                 name="inference_"+datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
