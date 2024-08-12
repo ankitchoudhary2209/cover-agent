@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 import wandb
+import json
 
 from cover_agent.CustomLogger import CustomLogger
 from cover_agent.ReportGenerator import ReportGenerator
@@ -47,7 +48,16 @@ class CoverAgent:
             shutil.copy(self.args.test_file_path, self.args.test_file_output_path)
         else:
             self.args.test_file_output_path = self.args.test_file_path
-
+    def append_generated_tests(test_file_path, generated_tests_dict):
+        # Convert the generated_tests_dict to a JSON string for easy readability
+        generated_tests_str = json.dumps(generated_tests_dict, indent=4)
+        
+        # Prepare the comment format
+        comments = f"# Generated Tests:\n# {generated_tests_str.replace('\n', '\n# ')}\n"
+    
+        # Open the file and append the comments
+        with open(test_file_path, 'a') as test_file:
+            test_file.write(comments)
     def run(self):
         if 'WANDB_API_KEY' in os.environ:
             wandb.login(key=os.environ['WANDB_API_KEY'])
@@ -69,6 +79,7 @@ class CoverAgent:
             self.logger.info(f"Desired Coverage: {self.test_gen.desired_coverage}%")
 
             generated_tests_dict = self.test_gen.generate_tests(max_tokens=4096)
+            self.append_generated_tests(self.args.test_file_output_path,generated_tests_dict)
             for generated_test in generated_tests_dict.get("new_tests", []):
                 test_result = self.test_gen.validate_test(
                     generated_test, generated_tests_dict
