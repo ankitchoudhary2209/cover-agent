@@ -83,7 +83,7 @@ class AICaller:
                 outputs={"model_response": model_response["choices"][0]["message"]["content"]})
             root_span.log(name="inference")
         print(model_response["choices"][0]["message"]["content"],int(model_response["usage"]["prompt_tokens"]),int(model_response["usage"]["completion_tokens"]))
-        exit(0)
+        #exit(0)
         # Returns: Response, Prompt token count, and Response token count
         return (
             model_response["choices"][0]["message"]["content"],
