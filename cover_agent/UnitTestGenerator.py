@@ -520,7 +520,7 @@ class UnitTestGenerator:
                 stdout, stderr, exit_code, time_of_test_command = Runner.run_command(
                     command=self.test_command, cwd=self.test_command_dir
                 )
-                exit(0)
+                #exit(0)
                 # Step 3: Check for pass/fail from the Runner object
                 if exit_code != 0:
                     # Test failed due to compilation error , roll back the test file to it's original content
