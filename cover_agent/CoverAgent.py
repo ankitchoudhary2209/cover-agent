@@ -79,7 +79,7 @@ class CoverAgent:
             self.logger.info(f"Desired Coverage: {self.test_gen.desired_coverage}%")
 
             generated_tests_dict = self.test_gen.generate_tests(max_tokens=4096)
-            self.append_generated_tests(self.args.test_file_output_path,generated_tests_dict)
+            #self.append_generated_tests(self.args.test_file_output_path,generated_tests_dict)
             for generated_test in generated_tests_dict.get("new_tests", []):
                 test_result = self.test_gen.validate_test(
                     generated_test, generated_tests_dict
