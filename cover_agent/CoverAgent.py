@@ -48,7 +48,7 @@ class CoverAgent:
             shutil.copy(self.args.test_file_path, self.args.test_file_output_path)
         else:
             self.args.test_file_output_path = self.args.test_file_path
-    def append_generated_tests(test_file_path, generated_tests_dict):
+    def append_generated_tests(self,test_file_path, generated_tests_dict):
         # Convert the generated_tests_dict to a JSON string for easy readability
         generated_tests_str = json.dumps(generated_tests_dict, indent=4)
         
