@@ -1,0 +1,119 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Test Results</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 20px;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+            }
+            th, td {
+                border: 1px solid #ddd;
+                text-align: left;
+                padding: 8px;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+            tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+            .status-pass {
+                color: green;
+            }
+            .status-fail {
+                color: red;
+            }
+            pre {
+                background-color: #000000 !important;
+                color: #ffffff !important;
+                padding: 5px;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <table>
+            <tr>
+                <th>Status</th>
+                <th>Reason</th>
+                <th>Exit Code</th>
+                <th>Stderr</th>
+                <th>Stdout</th>
+                <th>Test</th>
+            </tr>
+            
+            <tr>
+                <td class="status-FAIL">FAIL</td>
+                <td>Test failed</td>
+                <td>1</td>
+                <td><pre><code class="language-shell"># github.com/razorpay/cms/internal/address/repository/v1 [github.com/razorpay/cms/internal/address/repository/v1.test]
+./repo_test.go:7:5: "github.com/razorpay/cms/internal/address/entity" imported and not used
+./repo_test.go:9:5: "github.com/razorpay/goutils/spine" imported and not used
+./repo_test.go:10:5: "github.com/razorpay/goutils/spine/db" imported and not used
+./repo_test.go:11:5: "gorm.io/driver/mysql" imported and not used
+./repo_test.go:22:27: cannot use "mysql" (constant of type string) as "gorm.io/gorm".Dialector value in argument to gorm.Open: string does not implement "gorm.io/gorm".Dialector (missing method BindVarTo)
+./repo_test.go:22:36: cannot use db (variable of type *sql.DB) as "gorm.io/gorm".Option value in argument to gorm.Open: *sql.DB does not implement "gorm.io/gorm".Option (missing method AfterInitialize)
+./repo_test.go:27:27: cannot use gdb (variable of type *"gorm.io/gorm".DB) as *db.DB value in argument to NewRepository
+./repo_test.go:32:9: unknown field Count in struct literal of type input.ListByCustomerIDsAndTypeOpts
+./repo_test.go:33:9: unknown field Skip in struct literal of type input.ListByCustomerIDsAndTypeOpts
+</code></pre></td>
+                <td><pre><code class="language-shell">FAIL	github.com/razorpay/cms/internal/address/repository/v1 [build failed]
+</code></pre></td>
+                <td><pre><code class="language-python">{'test_behavior': 'Test that ListByCustomerIDsAndType returns the correct output when there are matching records\n', 'test_name': 'TestListByCustomerIDsAndType_MatchingRecords\n', 'test_code': 'func TestListByCustomerIDsAndType_MatchingRecords(t *testing.T) {\n    db, mock, err := sqlmock.New()\n    if err != nil {\n        t.Fatalf("an error \'%s\' was not expected when opening a stub database connection", err)\n    }\n    defer db.Close()\n\n    gdb, err := gorm.Open("mysql", db)\n    if err != nil {\n        t.Fatalf("an error \'%s\' was not expected when opening a gorm database connection", err)\n    }\n\n    repo := NewRepository(gdb)\n    ctx := context.TODO()\n    opt := &input.ListByCustomerIDsAndTypeOpts{\n        EntityIDs: []string{"1"},\n        Type:      "home",\n        Count:     10,\n        Skip:      0,\n    }\n\n    rows := sqlmock.NewRows([]string{"entity_id", "type"}).\n        AddRow("1", "home")\n\n    mock.ExpectQuery("SELECT \\\\* FROM `addresses` WHERE `entity_id` IN \\\\(\\\\?\\\\) AND `type` = \\\\? AND `addresses`.`deleted_at` IS NULL LIMIT 10 OFFSET 0").\n        WithArgs("1", "home").\n        WillReturnRows(rows)\n\n    addresses, err := repo.ListByCustomerIDsAndType(ctx, opt)\n    if err != nil {\n        t.Errorf("unexpected error: %s", err)\n    }\n\n    if len(addresses) != 1 {\n        t.Errorf("expected 1 address, got %d", len(addresses))\n    }\n}\n', 'new_imports_code': 'import (\n    "context"\n    "testing"\n    "github.com/DATA-DOG/go-sqlmock"\n    "github.com/razorpay/cms/internal/address/entity"\n    "github.com/razorpay/cms/internal/address/input"\n    "github.com/razorpay/goutils/spine"\n    "github.com/razorpay/goutils/spine/db"\n    "gorm.io/driver/mysql"\n    "gorm.io/gorm"\n)\n', 'test_tags': 'happy path'}</code></pre></td>
+            </tr>
+            
+            <tr>
+                <td class="status-FAIL">FAIL</td>
+                <td>Test failed</td>
+                <td>1</td>
+                <td><pre><code class="language-shell"># github.com/razorpay/cms/internal/address/repository/v1 [github.com/razorpay/cms/internal/address/repository/v1.test]
+./repo_test.go:7:5: "github.com/razorpay/cms/internal/address/entity" imported and not used
+./repo_test.go:9:5: "github.com/razorpay/goutils/spine" imported and not used
+./repo_test.go:10:5: "github.com/razorpay/goutils/spine/db" imported and not used
+./repo_test.go:11:5: "gorm.io/driver/mysql" imported and not used
+./repo_test.go:22:27: cannot use "mysql" (constant of type string) as "gorm.io/gorm".Dialector value in argument to gorm.Open: string does not implement "gorm.io/gorm".Dialector (missing method BindVarTo)
+./repo_test.go:22:36: cannot use db (variable of type *sql.DB) as "gorm.io/gorm".Option value in argument to gorm.Open: *sql.DB does not implement "gorm.io/gorm".Option (missing method AfterInitialize)
+./repo_test.go:27:27: cannot use gdb (variable of type *"gorm.io/gorm".DB) as *db.DB value in argument to NewRepository
+./repo_test.go:32:9: unknown field Count in struct literal of type input.ListByCustomerIDsAndTypeOpts
+./repo_test.go:33:9: unknown field Skip in struct literal of type input.ListByCustomerIDsAndTypeOpts
+</code></pre></td>
+                <td><pre><code class="language-shell">FAIL	github.com/razorpay/cms/internal/address/repository/v1 [build failed]
+</code></pre></td>
+                <td><pre><code class="language-python">{'test_behavior': 'Test that ListByCustomerIDsAndType returns an empty list when there are no matching records\n', 'test_name': 'TestListByCustomerIDsAndType_NoMatchingRecords\n', 'test_code': 'func TestListByCustomerIDsAndType_NoMatchingRecords(t *testing.T) {\n    db, mock, err := sqlmock.New()\n    if err != nil {\n        t.Fatalf("an error \'%s\' was not expected when opening a stub database connection", err)\n    }\n    defer db.Close()\n\n    gdb, err := gorm.Open("mysql", db)\n    if err != nil {\n        t.Fatalf("an error \'%s\' was not expected when opening a gorm database connection", err)\n    }\n\n    repo := NewRepository(gdb)\n    ctx := context.TODO()\n    opt := &input.ListByCustomerIDsAndTypeOpts{\n        EntityIDs: []string{"1"},\n        Type:      "home",\n        Count:     10,\n        Skip:      0,\n    }\n\n    rows := sqlmock.NewRows([]string{"entity_id", "type"})\n\n    mock.ExpectQuery("SELECT \\\\* FROM `addresses` WHERE `entity_id` IN \\\\(\\\\?\\\\) AND `type` = \\\\? AND `addresses`.`deleted_at` IS NULL LIMIT 10 OFFSET 0").\n        WithArgs("1", "home").\n        WillReturnRows(rows)\n\n    addresses, err := repo.ListByCustomerIDsAndType(ctx, opt)\n    if err != nil {\n        t.Errorf("unexpected error: %s", err)\n    }\n\n    if len(addresses) != 0 {\n        t.Errorf("expected 0 addresses, got %d", len(addresses))\n    }\n}\n', 'new_imports_code': 'import (\n    "context"\n    "testing"\n    "github.com/DATA-DOG/go-sqlmock"\n    "github.com/razorpay/cms/internal/address/entity"\n    "github.com/razorpay/cms/internal/address/input"\n    "github.com/razorpay/goutils/spine"\n    "github.com/razorpay/goutils/spine/db"\n    "gorm.io/driver/mysql"\n    "gorm.io/gorm"\n)\n', 'test_tags': 'edge case'}</code></pre></td>
+            </tr>
+            
+            <tr>
+                <td class="status-FAIL">FAIL</td>
+                <td>Test failed</td>
+                <td>1</td>
+                <td><pre><code class="language-shell"># github.com/razorpay/cms/internal/address/repository/v1 [github.com/razorpay/cms/internal/address/repository/v1.test]
+./repo_test.go:8:5: "github.com/razorpay/cms/internal/address/entity" imported and not used
+./repo_test.go:10:5: "github.com/razorpay/goutils/spine" imported and not used
+./repo_test.go:11:5: "github.com/razorpay/goutils/spine/db" imported and not used
+./repo_test.go:12:5: "gorm.io/driver/mysql" imported and not used
+./repo_test.go:23:27: cannot use "mysql" (constant of type string) as "gorm.io/gorm".Dialector value in argument to gorm.Open: string does not implement "gorm.io/gorm".Dialector (missing method BindVarTo)
+./repo_test.go:23:36: cannot use db (variable of type *sql.DB) as "gorm.io/gorm".Option value in argument to gorm.Open: *sql.DB does not implement "gorm.io/gorm".Option (missing method AfterInitialize)
+./repo_test.go:28:27: cannot use gdb (variable of type *"gorm.io/gorm".DB) as *db.DB value in argument to NewRepository
+./repo_test.go:33:9: unknown field Count in struct literal of type input.ListByCustomerIDsAndTypeOpts
+./repo_test.go:34:9: unknown field Skip in struct literal of type input.ListByCustomerIDsAndTypeOpts
+</code></pre></td>
+                <td><pre><code class="language-shell">FAIL	github.com/razorpay/cms/internal/address/repository/v1 [build failed]
+</code></pre></td>
+                <td><pre><code class="language-python">{'test_behavior': 'Test that ListByCustomerIDsAndType returns an error when the database query fails\n', 'test_name': 'TestListByCustomerIDsAndType_DBQueryError\n', 'test_code': 'func TestListByCustomerIDsAndType_DBQueryError(t *testing.T) {\n    db, mock, err := sqlmock.New()\n    if err != nil {\n        t.Fatalf("an error \'%s\' was not expected when opening a stub database connection", err)\n    }\n    defer db.Close()\n\n    gdb, err := gorm.Open("mysql", db)\n    if err != nil {\n        t.Fatalf("an error \'%s\' was not expected when opening a gorm database connection", err)\n    }\n\n    repo := NewRepository(gdb)\n    ctx := context.TODO()\n    opt := &input.ListByCustomerIDsAndTypeOpts{\n        EntityIDs: []string{"1"},\n        Type:      "home",\n        Count:     10,\n        Skip:      0,\n    }\n\n    mock.ExpectQuery("SELECT \\\\* FROM `addresses` WHERE `entity_id` IN \\\\(\\\\?\\\\) AND `type` = \\\\? AND `addresses`.`deleted_at` IS NULL LIMIT 10 OFFSET 0").\n        WithArgs("1", "home").\n        WillReturnError(fmt.Errorf("db query error"))\n\n    _, err = repo.ListByCustomerIDsAndType(ctx, opt)\n    if err == nil {\n        t.Errorf("expected an error, but got none")\n    }\n}\n', 'new_imports_code': 'import (\n    "context"\n    "testing"\n    "fmt"\n    "github.com/DATA-DOG/go-sqlmock"\n    "github.com/razorpay/cms/internal/address/entity"\n    "github.com/razorpay/cms/internal/address/input"\n    "github.com/razorpay/goutils/spine"\n    "github.com/razorpay/goutils/spine/db"\n    "gorm.io/driver/mysql"\n    "gorm.io/gorm"\n)\n', 'test_tags': 'edge case'}</code></pre></td>
+            </tr>
+            
+        </table>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/prism.min.js"></script>
+    </body>
+    </html>
+    

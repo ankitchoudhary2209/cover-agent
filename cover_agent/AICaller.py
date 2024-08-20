@@ -57,9 +57,7 @@ class AICaller:
             or self.model.startswith("openai/")
         ):
             completion_params["api_base"] = self.api_base
-
         response = litellm.completion(**completion_params)
-        print(response)
         chunks = []
         print("Streaming results from LLM model...")
         try:
@@ -74,7 +72,6 @@ class AICaller:
         print("\n")
 
         model_response = litellm.stream_chunk_builder(chunks, messages=messages)
-        print(model_response)
         if 'WANDB_API_KEY' in os.environ:
             root_span = Trace(
                 name="inference_"+datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
@@ -82,9 +79,6 @@ class AICaller:
                 inputs={"user_prompt": prompt["user"], "system_prompt": prompt["system"]},
                 outputs={"model_response": model_response["choices"][0]["message"]["content"]})
             root_span.log(name="inference")
-        print(model_response["choices"][0]["message"]["content"],int(model_response["usage"]["prompt_tokens"]),int(model_response["usage"]["completion_tokens"]))
-        #exit(0)
-        # Returns: Response, Prompt token count, and Response token count
         return (
             model_response["choices"][0]["message"]["content"],
             int(model_response["usage"]["prompt_tokens"]),

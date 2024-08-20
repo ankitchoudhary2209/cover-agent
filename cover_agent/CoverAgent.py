@@ -67,7 +67,7 @@ class CoverAgent:
 
         iteration_count = 0
         test_results_list = []
-
+        
         self.test_gen.initial_test_suite_analysis()
         while (
             self.test_gen.current_coverage < (self.test_gen.desired_coverage / 100)

@@ -149,8 +149,6 @@ class PromptBuilder:
         except Exception as e:
             logging.error(f"Error rendering prompt: {e}")
             return {"system": "", "user": ""}
-
-        # print(f"#### user_prompt:\n\n{user_prompt}")
         return {"system": system_prompt, "user": user_prompt}
 
     def build_prompt_custom(self, file) -> dict:
@@ -179,5 +177,4 @@ class PromptBuilder:
         except Exception as e:
             logging.error(f"Error rendering prompt: {e}")
             return {"system": "", "user": ""}
-
         return {"system": system_prompt, "user": user_prompt}

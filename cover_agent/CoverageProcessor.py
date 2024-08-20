@@ -59,6 +59,7 @@ class CoverageProcessor:
         Raises:
             AssertionError: If the coverage report does not exist or was not updated after the test command.
         """
+        
         assert os.path.exists(
             self.file_path
         ), f'Fatal: Coverage report "{self.file_path}" was not generated.'

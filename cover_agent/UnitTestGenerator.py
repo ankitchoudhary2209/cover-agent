@@ -433,87 +433,144 @@ class UnitTestGenerator:
         return failure_details
 
         
-    
-    def parse_packages(self, input_str):
-        input_str = input_str.replace('import', '').replace('(', '').replace(')', '').strip()
-        packages = [pkg.strip('" \t') for pkg in input_str.splitlines() if pkg.strip()]
+
+    def parse_packages(self,input_str):
+        input_str = input_str.strip()
+        packages = []
+
+        # Regex to match Go import statements with aliases
+        import_block_re = re.compile(r'import\s*\((.*?)\)', re.DOTALL)
+        block_match = import_block_re.search(input_str)
+        
+        if block_match:
+            imports_block = block_match.group(1)
+            package_re = re.compile(r'(\w*)\s*"([^"]*)"', re.MULTILINE)
+            matches = package_re.findall(imports_block)
+            packages = [f'{alias} "{path}"' for alias, path in matches]
+        else:
+            # Simple list of packages with optional aliases
+            simple_packages = [pkg.strip() for pkg in input_str.splitlines() if pkg.strip()]
+            packages.extend(simple_packages)
+
         return packages
+
 
 
     def validate_test(self, generated_test: dict, generated_tests_dict: dict):
         try:
-            # Step 0: no pre-process.
-            # We asked the model that each generated test should be a self-contained independent test
             test_code = generated_test.get("test_code", "").rstrip()
-            # additional_imports = generated_test.get("new_imports_code", "").strip()
             additional_imports = self.parse_packages(generated_test.get("new_imports_code", ""))
-            if additional_imports and additional_imports[0] == '"' and additional_imports[-1] == '"':
-                additional_imports = additional_imports.strip('"')
 
-            # check if additional_imports only contains '"':
-            if additional_imports and additional_imports == '""':
-                additional_imports = ""
+            if additional_imports:
+                additional_imports = [pkg.strip() for pkg in additional_imports if pkg.strip()]
+            print('new_imports: ',additional_imports)
             relevant_line_number_to_insert_tests_after = self.relevant_line_number_to_insert_tests_after
             relevant_line_number_to_insert_imports_after = self.relevant_line_number_to_insert_imports_after
+            #needed_indent = self.test_headers_indentation
 
-            needed_indent = self.test_headers_indentation
-            # remove initial indent of the test code, and insert the needed indent
+            # Adjust indentation of the test code if necessary
             test_code_indented = test_code
-            if needed_indent:
-                initial_indent = len(test_code) - len(test_code.lstrip())
-                delta_indent = int(needed_indent) - initial_indent
-                if delta_indent > 0:
-                    test_code_indented = "\n".join(
-                        [delta_indent * " " + line for line in test_code.split("\n")]
-                    )
+            # if needed_indent:
+            #     initial_indent = len(test_code) - len(test_code.lstrip())
+            #     delta_indent = int(needed_indent) - initial_indent
+            #     if delta_indent > 0:
+            #         test_code_indented = "\n".join(
+            #             [delta_indent * " " + line for line in test_code.split("\n")]
+            #         )
+            test_code_indented = test_code
             test_code_indented = "\n" + test_code_indented.strip("\n") + "\n"
 
             if test_code_indented and relevant_line_number_to_insert_tests_after:
-
-                # Step 1: Append the generated test to the relevant line in the test file
+                # Read the existing test file
                 with open(self.test_file_path, "r") as test_file:
-                    original_content = test_file.read()  # Store original content
+                    original_content = test_file.read()
+                #print('original content: ',original_content)
+                # Split the content into lines
                 original_content_lines = original_content.split("\n")
                 test_code_lines = test_code_indented.split("\n")
-                # insert the test code at the relevant line
+                #print(test_code_lines,original_content_lines)
+                # Insert the test code at the relevant line
                 processed_test_lines = (
                     original_content_lines[:relevant_line_number_to_insert_tests_after]
                     + test_code_lines
                     + original_content_lines[relevant_line_number_to_insert_tests_after:]
                 )
-                # insert the additional imports at line 'relevant_line_number_to_insert_imports_after'
-                processed_test = "\n".join(processed_test_lines)
-                print("additional_imports are: ", additional_imports)
-                print("relevant_line_number_to_insert_imports_after are: ", relevant_line_number_to_insert_imports_after)
-                print("processed_test are: ", processed_test)
-                import_section_re = re.compile(r'(?s)(import\s*\()(.+?)(\))')
-                print("import_section_re are: ", import_section_re)
-                match = import_section_re.search(original_content)
-                original_import_section = match.group(2)
-                original_import_section = original_import_section
-                print("original_import_section are: ", original_import_section)
-                if "testing" not in additional_imports:
-                    additional_imports.append("testing")
-                additional_imports_filtered = [f"\"{Import}\"" for Import in additional_imports if Import not in original_import_section]
-                print("additional_imports_filtered are: ", additional_imports_filtered)
-                # if relevant_line_number_to_insert_imports_after and additional_imports and additional_imports not in processed_test:
-                #     additional_imports_lines = additional_imports.split("\n")
-                if relevant_line_number_to_insert_imports_after and additional_imports_filtered:
-                    additional_imports_lines = additional_imports_filtered
-                    print("additional_imports_lines are: ", additional_imports_lines)
-                    processed_test_lines = (
-                        processed_test_lines[:relevant_line_number_to_insert_imports_after]
-                        + additional_imports_lines
-                        + processed_test_lines[relevant_line_number_to_insert_imports_after:]
-                    )
-                    print("processed_test_lines are: ", processed_test_lines)
-                    self.relevant_line_number_to_insert_tests_after += len(additional_imports_lines) # this is important, otherwise the next test will be inserted at the wrong line
-                processed_test = "\n".join(processed_test_lines)
+                
+                # Handle imports
+                import_section_re = re.compile(r'import\s*\((.*?)\)', re.DOTALL)
+                match = import_section_re.search("\n".join(processed_test_lines))
+                if match:
+                    original_import_section = match.group(1)
+                    existing_imports = re.findall(r'(\w*)\s*"([^"]*)"', original_import_section)
+                    print(existing_imports)
+                    # Extract existing paths and aliases
+                    existing_paths = {path for _, path in existing_imports}
+                    existing_aliases = {alias: path for alias, path in existing_imports}
 
+                    # Filter out imports that already exist in the file
+                    additional_imports_filtered = []
+                    #print(additional_imports)
+                    for pkg in additional_imports:
+                        parts = pkg.split(" ", 1)
+                        print(pkg)
+                        if pkg == '""':
+                            continue
+                        elif len(parts) == 2:  # Ensure there are exactly 2 parts: alias and path
+                            alias, path = parts
+                            path = path.strip('"')
+                            if alias in existing_aliases:
+                                if existing_aliases[alias] != path:
+                                    # If alias exists but with a different path, decide how to handle it
+                                    print(f"Alias '{alias}' already exists with a different path: '{existing_aliases[alias]}'. Skipping or handling.")
+                            elif path not in existing_paths:
+                                additional_imports_filtered.append(f'{alias} "{path}"')
+                        elif len(parts) == 1:  # Handle simple package without alias
+                            path = parts[0].strip('"')
+                            if path not in existing_paths:
+                                additional_imports_filtered.append(f' "{path}"')
+                    existing_imports = [(alias,f'\"{path}\"') for alias,path in existing_imports]
+                    #print('additional_imports_filtered:',additional_imports_filtered)
+                    if additional_imports_filtered:
+                        all_imports = existing_imports + [pkg.split(" ", 1) for pkg in additional_imports_filtered if pkg.split(" ", 1)]
+                        print(all_imports)
+                        all_imports = {path: alias for alias, path in all_imports}  
+                        print(all_imports)
+                        # Format new imports and update the import block
+                        formatted_imports = []
+                        for path, alias in all_imports.items():
+                            if alias:
+                                formatted_imports.append(f'    {alias} {path}')
+                            else:
+                                formatted_imports.append(f'    {path}')
+
+                        additional_imports_lines = "\n".join(formatted_imports)
+                        new_imports_section = f'import (\n{additional_imports_lines}\n)'
+                        
+                        # Replace the import block in the original content
+                        new_content = re.sub(
+                            import_section_re,
+                            new_imports_section,
+                            "\n".join(processed_test_lines)
+                        )
+                        processed_test_lines = new_content.split("\n")
+                        self.relevant_line_number_to_insert_tests_after += len(additional_imports_filtered)
+                        #print("relevant_line_number_to_insert_tests_after: ",self.relevant_line_number_to_insert_tests_after)
+                else:
+                    # Handle the case where no import block exists
+                    if additional_imports:
+                        additional_imports_lines = "\n".join([f'    {pkg}' for pkg in additional_imports])
+                        new_imports_section = f'import (\n{additional_imports_lines}\n)'
+                        
+                        processed_test_lines.insert(0, new_imports_section)  # Insert import block at the start
+                        processed_test_lines = "\n".join(processed_test_lines).split("\n")
+                        self.relevant_line_number_to_insert_tests_after += len(additional_imports)
+
+                print("\n".join(processed_test_lines))
+                # Write updated content back to the file
                 with open(self.test_file_path, "w") as test_file:
-                    test_file.write(processed_test)
+                    test_file.write("\n".join(processed_test_lines))
 
-                # Step 2: Run the test using the Runner class
+                # Run the test command
                 self.logger.info(
                     f'Running test with the following command: "{self.test_command}"'
                 )
@@ -527,6 +584,8 @@ class UnitTestGenerator:
                     if "syntax error" in stderr or "SyntaxError" in stderr or "IndentationError" in stderr or "ImportError" in stderr:
                         with open(self.test_file_path, "w") as test_file:
                             test_file.write(original_content)
+                            self.relevant_line_number_to_insert_tests_after -= len(additional_imports_filtered)
+
                         self.logger.info(f"Skipping a generated test that failed due to compilation error")
                         return {
                             "status": "COMPILATION_ERROR",
@@ -539,6 +598,7 @@ class UnitTestGenerator:
                     # Test failed, roll back the test file to its original content
                     with open(self.test_file_path, "w") as test_file:
                         test_file.write(original_content)
+                        self.relevant_line_number_to_insert_tests_after -= len(additional_imports_filtered)
                     self.logger.info(f"Skipping a generated test that failed")
                     fail_details = {
                         "status": "FAIL",
@@ -588,6 +648,7 @@ class UnitTestGenerator:
                         # Coverage has not increased, rollback the test by removing it from the test file
                         with open(self.test_file_path, "w") as test_file:
                             test_file.write(original_content)
+                            self.relevant_line_number_to_insert_tests_after -= len(additional_imports_filtered)
                         self.logger.info(
                             "Test did not increase coverage. Rolling back."
                         )
@@ -605,7 +666,8 @@ class UnitTestGenerator:
                                 "error_message": "did not increase code coverage",
                             }
                         )  
-                        self.coverage_failure_testcases_as_comments(fail_details,additional_imports_filtered)
+                        if self.failed_test_case_visibility:
+                            self.coverage_failure_testcases_as_comments(fail_details,additional_imports_filtered)
 
                         if 'WANDB_API_KEY' in os.environ:
                             root_span = Trace(
@@ -622,6 +684,7 @@ class UnitTestGenerator:
                     # Optionally, roll back even in case of error
                     with open(self.test_file_path, "w") as test_file:
                         test_file.write(original_content)
+                        self.relevant_line_number_to_insert_tests_after -= len(additional_imports_filtered)
                     fail_details = {
                         "status": "FAIL",
                         "reason": "Runtime error",
