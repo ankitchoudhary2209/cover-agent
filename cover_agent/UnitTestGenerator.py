@@ -392,10 +392,11 @@ class UnitTestGenerator:
         try:
             test_code = generated_test.get("test_code", "").rstrip()
             additional_imports = self.parse_packages(generated_test.get("new_imports_code", ""))
-
+            additional_imports.append('"testing"')
             if additional_imports:
                 additional_imports = [pkg.strip() for pkg in additional_imports if pkg.strip()]
             relevant_line_number_to_insert_tests_after = self.relevant_line_number_to_insert_tests_after
+            relevant_line_number_to_insert_imports_after = self.relevant_line_number_to_insert_imports_after
             #needed_indent = self.test_headers_indentation
 
             # Adjust indentation of the test code if necessary
@@ -414,15 +415,14 @@ class UnitTestGenerator:
                 # Read the existing test file
                 with open(self.test_file_path, "r") as test_file:
                     original_content = test_file.read()
-                #print('original content: ',original_content)
                 # Split the content into lines
                 original_content_lines = original_content.split("\n")
                 test_code_lines = test_code_indented.split("\n")
-                #print(test_code_lines,original_content_lines)
                 # Insert the test code at the relevant line
                 processed_test_lines = (
-                    original_content_lines
+                    original_content_lines[:relevant_line_number_to_insert_tests_after]
                     + test_code_lines
+                    + original_content_lines[relevant_line_number_to_insert_tests_after:]
                 )
                 
                 # Handle imports
@@ -432,7 +432,7 @@ class UnitTestGenerator:
                     original_import_section = match.group(1)
                     existing_imports = re.findall(r'(\w*)\s*"([^"]*)"', original_import_section)
                     # Extract existing paths and aliases
-                    existing_paths = {path for _, path in existing_imports}
+                    existing_paths = {path for _, path in existing_imports} 
                     existing_aliases = {alias: path for alias, path in existing_imports}
 
                     # Filter out imports that already exist in the file
@@ -468,13 +468,13 @@ class UnitTestGenerator:
 
                         additional_imports_lines = "\n".join(formatted_imports)
                         new_imports_section = f'import (\n{additional_imports_lines}\n)'
-                        
                         # Replace the import block in the original content
                         new_content = re.sub(
                             import_section_re,
                             new_imports_section,
                             "\n".join(processed_test_lines)
                         )
+
                         processed_test_lines = new_content.split("\n")
                         self.relevant_line_number_to_insert_tests_after += len(additional_imports_filtered)
                 else:
@@ -545,7 +545,6 @@ class UnitTestGenerator:
                             outputs=fail_details)
                         root_span.log(name='inference')
                     if self.failed_test_case_visibility:
-                        print(fail_details,'\n\n############\n\n',additional_imports_filtered)
                         self.append_failure_details_as_comments(fail_details,additional_imports_filtered)
                     return fail_details
 
@@ -587,8 +586,6 @@ class UnitTestGenerator:
                                 "error_message": "did not increase code coverage",
                             }
                         )  
-                        if self.failed_test_case_visibility:
-                            self.coverage_failure_testcases_as_comments(fail_details,additional_imports_filtered)
 
                         if 'WANDB_API_KEY' in os.environ:
                             root_span = Trace(
