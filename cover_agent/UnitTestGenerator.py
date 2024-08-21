@@ -342,9 +342,7 @@ class UnitTestGenerator:
     
     def append_failure_details_as_comments(self, fail_details,additional_imports):
         relevant_line_number_to_insert_tests_after = self.relevant_line_number_to_insert_tests_after
-        relevant_line_number_to_insert_imports_after = self.relevant_line_number_to_insert_imports_after
         failure_details = []
-        print(failure_details)
         failure_details.append("\n/* Test Failure Details */\n")
         failure_details.append(f"/* Status: {fail_details['status']}\n")
         failure_details.append(f"/* Reason: {fail_details['reason']}*/\n")
@@ -353,87 +351,21 @@ class UnitTestGenerator:
         failure_details.append(f"/* Test Behaviour: {fail_details['test']['test_behavior']}*/\n")
         failure_details.append(f"/* Error: {fail_details['stdout'].split('coverage:')[0]}*/\n")
         failure_details.append(f"/* Test Name: {fail_details['test']['test_name']}*/\n")
+        failure_details.append(f"/* Additional Imports Required: {additional_imports}*/\n")
         failure_details.append(f"/* Test Code: {fail_details['test']['test_code']}*/\n")
         failure_details.append(f"/* Test Tags: {fail_details['test']['test_tags']}*/\n")
         test_code_indented = ''.join(failure_details)
-         # Step 1: Append the generated test to the relevant line in the test file
         with open(self.test_file_path, "r") as test_file:
             original_content = test_file.read()  # Store original content
         original_content_lines = original_content.split("\n")
         test_code_lines = test_code_indented.split("\n")
         # insert the test code at the relevant line
-        processed_test_lines = (
-            original_content_lines[:relevant_line_number_to_insert_tests_after]
-            +test_code_lines
-            + original_content_lines[relevant_line_number_to_insert_tests_after:]
-        )
-        # insert the additional imports at line 'relevant_line_number_to_insert_imports_after'
-        processed_test = "\n".join(processed_test_lines)
-        if relevant_line_number_to_insert_imports_after and additional_imports and additional_imports not in processed_test:
-            additional_imports_lines = additional_imports.split("\n")
-            processed_test_lines = (
-                processed_test_lines[:relevant_line_number_to_insert_imports_after]
-                + additional_imports_lines
-                + processed_test_lines[relevant_line_number_to_insert_imports_after:]
-            )
-            self.relevant_line_number_to_insert_tests_after += len(additional_imports_lines) # this is important, otherwise the next test will be inserted at the wrong line
+        processed_test_lines = (original_content_lines + ['',''] + test_code_lines)
         processed_test = "\n".join(processed_test_lines)
 
         with open(self.test_file_path, "w") as test_file:
             test_file.write(processed_test)
         return failure_details
-
-    def coverage_failure_testcases_as_comments(self, tc_details, additional_imports):
-        relevant_line_number_to_insert_tests_after = self.relevant_line_number_to_insert_tests_after
-    
-        # Prepare the failure details as comments
-        failure_details = []
-        failure_details.append("\n/* Coverage Failure Details */\n")
-        failure_details.append(f"/* Status: {tc_details['status']} */\n")
-        failure_details.append(f"/* Reason: {tc_details['reason']} */\n")
-        failure_details.append(f"/* Exit Code: {tc_details['exit_code']} */\n")
-        #failure_details.append(f"/* Stderr: {tc_details['stderr']} */\n")
-        failure_details.append(f"/* Test Behaviour: {tc_details['test']['test_behavior']} */\n")
-        #failure_details.append(f"/* Error: {tc_details['stdout'].split('coverage:')[0]} */\n")
-        failure_details.append(f"/* Test Name: {tc_details['test']['test_name']} */\n")
-        failure_details.append(f"/* Test Code: {tc_details['test']['test_code']} */\n")
-        failure_details.append(f"/* Test Tags: {tc_details['test']['test_tags']} */\n")
-        failure_details.append(f"/* Coverage Report: {self.code_coverage_report_path} */\n")
-    
-        # Add additional imports as comments
-        if additional_imports:
-            failure_details.append("/* Additional Imports:\n")
-            for imp in additional_imports:
-                if imp.strip():  # Avoid adding empty lines
-                    failure_details.append(f" * {imp.strip()}\n")
-            failure_details.append(" */\n")
-    
-        failure_details_indented = ''.join(failure_details)
-    
-        # Read the current content of the test file
-        with open(self.test_file_path, "r") as test_file:
-            original_content = test_file.read()
-    
-        original_content_lines = original_content.split("\n")
-        failure_details_lines = failure_details_indented.split("\n")
-    
-        # Insert the failure details after the relevant line
-        processed_lines = (
-            original_content_lines[:relevant_line_number_to_insert_tests_after]
-            + failure_details_lines
-            + original_content_lines[relevant_line_number_to_insert_tests_after:]
-        )
-    
-        processed_content = "\n".join(processed_lines)
-    
-        # Write the modified content back to the test file
-        with open(self.test_file_path, "w") as test_file:
-            test_file.write(processed_content)
-    
-        return failure_details
-
-        
-
     def parse_packages(self,input_str):
         input_str = input_str.strip()
         packages = []
@@ -463,9 +395,7 @@ class UnitTestGenerator:
 
             if additional_imports:
                 additional_imports = [pkg.strip() for pkg in additional_imports if pkg.strip()]
-            print('new_imports: ',additional_imports)
             relevant_line_number_to_insert_tests_after = self.relevant_line_number_to_insert_tests_after
-            relevant_line_number_to_insert_imports_after = self.relevant_line_number_to_insert_imports_after
             #needed_indent = self.test_headers_indentation
 
             # Adjust indentation of the test code if necessary
@@ -491,9 +421,8 @@ class UnitTestGenerator:
                 #print(test_code_lines,original_content_lines)
                 # Insert the test code at the relevant line
                 processed_test_lines = (
-                    original_content_lines[:relevant_line_number_to_insert_tests_after]
+                    original_content_lines
                     + test_code_lines
-                    + original_content_lines[relevant_line_number_to_insert_tests_after:]
                 )
                 
                 # Handle imports
@@ -502,17 +431,14 @@ class UnitTestGenerator:
                 if match:
                     original_import_section = match.group(1)
                     existing_imports = re.findall(r'(\w*)\s*"([^"]*)"', original_import_section)
-                    print(existing_imports)
                     # Extract existing paths and aliases
                     existing_paths = {path for _, path in existing_imports}
                     existing_aliases = {alias: path for alias, path in existing_imports}
 
                     # Filter out imports that already exist in the file
                     additional_imports_filtered = []
-                    #print(additional_imports)
                     for pkg in additional_imports:
                         parts = pkg.split(" ", 1)
-                        print(pkg)
                         if pkg == '""':
                             continue
                         elif len(parts) == 2:  # Ensure there are exactly 2 parts: alias and path
@@ -529,12 +455,9 @@ class UnitTestGenerator:
                             if path not in existing_paths:
                                 additional_imports_filtered.append(f' "{path}"')
                     existing_imports = [(alias,f'\"{path}\"') for alias,path in existing_imports]
-                    #print('additional_imports_filtered:',additional_imports_filtered)
                     if additional_imports_filtered:
                         all_imports = existing_imports + [pkg.split(" ", 1) for pkg in additional_imports_filtered if pkg.split(" ", 1)]
-                        print(all_imports)
                         all_imports = {path: alias for alias, path in all_imports}  
-                        print(all_imports)
                         # Format new imports and update the import block
                         formatted_imports = []
                         for path, alias in all_imports.items():
@@ -554,7 +477,6 @@ class UnitTestGenerator:
                         )
                         processed_test_lines = new_content.split("\n")
                         self.relevant_line_number_to_insert_tests_after += len(additional_imports_filtered)
-                        #print("relevant_line_number_to_insert_tests_after: ",self.relevant_line_number_to_insert_tests_after)
                 else:
                     # Handle the case where no import block exists
                     if additional_imports:
@@ -564,8 +486,6 @@ class UnitTestGenerator:
                         processed_test_lines.insert(0, new_imports_section)  # Insert import block at the start
                         processed_test_lines = "\n".join(processed_test_lines).split("\n")
                         self.relevant_line_number_to_insert_tests_after += len(additional_imports)
-
-                print("\n".join(processed_test_lines))
                 # Write updated content back to the file
                 with open(self.test_file_path, "w") as test_file:
                     test_file.write("\n".join(processed_test_lines))
@@ -581,12 +501,12 @@ class UnitTestGenerator:
                 # Step 3: Check for pass/fail from the Runner object
                 if exit_code != 0:
                     # Test failed due to compilation error , roll back the test file to it's original content
-                    if "syntax error" in stderr or "SyntaxError" in stderr or "IndentationError" in stderr or "ImportError" in stderr:
+                    if "syntax error" in stderr or "SyntaxError" in stderr or "IndentationError" in stderr or "ImportError" in stderr or "[build failed]" in stdout or "[setup failed]" in stdout:
                         with open(self.test_file_path, "w") as test_file:
                             test_file.write(original_content)
                             self.relevant_line_number_to_insert_tests_after -= len(additional_imports_filtered)
 
-                        self.logger.info(f"Skipping a generated test that failed due to compilation error")
+                        self.logger.info(f"Skipping a generated test that failed due to Build/Setup Failure")
                         return {
                             "status": "COMPILATION_ERROR",
                             "reason": "Compiltaion error",
@@ -625,6 +545,7 @@ class UnitTestGenerator:
                             outputs=fail_details)
                         root_span.log(name='inference')
                     if self.failed_test_case_visibility:
+                        print(fail_details,'\n\n############\n\n',additional_imports_filtered)
                         self.append_failure_details_as_comments(fail_details,additional_imports_filtered)
                     return fail_details
 
