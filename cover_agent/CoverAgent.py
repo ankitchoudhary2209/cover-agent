@@ -53,7 +53,8 @@ class CoverAgent:
         generated_tests_str = json.dumps(generated_tests_dict, indent=4)
         
         # Prepare the comment format
-        comments = f"# Generated Tests:\n# {generated_tests_str.replace('\n', '\n# ')}\n"
+        processed_generated_tests_str = generated_tests_str.replace('\n', '\n# ')
+        comments = f"# Generated Tests:\n# {processed_generated_tests_str}\n"
     
         # Open the file and append the comments
         with open(test_file_path, 'a') as test_file:
