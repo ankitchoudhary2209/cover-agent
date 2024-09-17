@@ -97,15 +97,17 @@ class ReportGenerator:
         }
         for result in results:
             counters["total"] += 1
-            print(result)
+            #print(result)
             if result["reason"] == "Skipping a generated test that failed due to Build/Setup Failure":
                 counters["build/setup failed"] += 1
             elif result["reason"] == "Skipping a generated test that failed":
                 counters["failed"] += 1
             elif result["reason"] == "Coverage did not increase":
                 counters["Passed but did not increase code coverage"] += 1
-            else:
+            elif result["reason"] == "":
                 counters["passed and added to the test file"] += 1
+            else:
+                counters["build/setup failed"] += 1
         try:
             with open(report_path, 'r') as f:
                 file_exists = True
