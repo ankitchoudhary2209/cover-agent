@@ -97,11 +97,12 @@ class ReportGenerator:
         }
         for result in results:
             counters["total"] += 1
-            if result.reason == "Skipping a generated test that failed due to Build/Setup Failure":
+            print(result)
+            if result["reason"] == "Skipping a generated test that failed due to Build/Setup Failure":
                 counters["build/setup failed"] += 1
-            elif result.reason == "Skipping a generated test that failed":
+            elif result["reason"] == "Skipping a generated test that failed":
                 counters["failed"] += 1
-            elif result.reason == "Coverage did not increase":
+            elif result["reason"] == "Coverage did not increase":
                 counters["Passed but did not increase code coverage"] += 1
             else:
                 counters["passed"] += 1
