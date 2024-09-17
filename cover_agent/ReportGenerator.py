@@ -105,7 +105,7 @@ class ReportGenerator:
             elif result["reason"] == "Coverage did not increase":
                 counters["Passed but did not increase code coverage"] += 1
             else:
-                counters["passed"] += 1
+                counters["passed and added to the test file"] += 1
         try:
             with open(report_path, 'r') as f:
                 file_exists = True
@@ -116,7 +116,7 @@ class ReportGenerator:
             'Total Test Cases': counters['total'],
             'Passed': counters['passed and added to the test file'],
             'Failed (Build/Setup/Errored)': counters['build/setup failed'],
-            'Failed (Other)': counters['failed'],
+            'Failed (Other)': counters['failed'] + counters['Passed but did not increase code coverage'],
             'Source File' : source_file_path,
             'Previouse Coverage': f'{round(prev_coverage * 100, 2)}%',
             'New Coverage' :f'{round(new_coverage * 100, 2)}%'
