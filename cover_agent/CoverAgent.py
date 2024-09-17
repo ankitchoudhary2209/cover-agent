@@ -70,6 +70,7 @@ class CoverAgent:
         test_results_list = []
         
         self.test_gen.initial_test_suite_analysis()
+        original_coverage = self.test_gen.current_coverage
         while (
             self.test_gen.current_coverage < (self.test_gen.desired_coverage / 100)
             and iteration_count < self.args.max_iterations
@@ -106,7 +107,7 @@ class CoverAgent:
             else:
                 self.logger.info(failure_message)
         ReportGenerator.generate_report(
-            test_results_list, self.args.report_filepath
+            test_results_list, self.args.report_filepath,self.args.source_file_path,original_coverage,self.test_gen.current_coverage
         )
 
         if 'WANDB_API_KEY' in os.environ:
