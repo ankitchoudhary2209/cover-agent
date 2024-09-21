@@ -114,7 +114,7 @@ class CoverageProcessor:
                         lines_covered.append(line_number)
                     else:
                         lines_missed.append(line_number)
-                break  # Assuming filename is unique, break after finding and processing it
+                
 
         total_lines = len(lines_covered) + len(lines_missed)
         coverage_percentage = (
