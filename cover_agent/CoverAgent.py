@@ -142,7 +142,7 @@ class CoverAgent:
                 test_results_list.append(test_result)
 
                 # Insert the test result into the database
-                self.test_db.insert_attempt(test_result)
+                #self.test_db.insert_attempt(test_result)
 
             # Increment the iteration count
             iteration_count += 1
@@ -175,9 +175,8 @@ class CoverAgent:
         )
 
         # Generate a report
-        # ReportGenerator.generate_report(test_results_list, self.args.report_filepath)
-        self.test_db.dump_to_report(self.args.report_filepath)
-
+        ReportGenerator.generate_report(test_results_list, self.args.report_filepath)
+        
         # Finish the Weights & Biases run if it was initialized
         if "WANDB_API_KEY" in os.environ:
             wandb.finish()
