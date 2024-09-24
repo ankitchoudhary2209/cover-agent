@@ -29,7 +29,7 @@ class UnitTestGenerator:
         coverage_type="cobertura",
         desired_coverage: int = 90,  # Default to 90% coverage if not specified
         additional_instructions: str = "",
-        failed_test_case_visibility: bool = False
+        failed_test_case_visibility: bool = False,
         use_report_coverage_feature_flag: bool = False,
     ):
         """
