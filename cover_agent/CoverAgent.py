@@ -38,7 +38,7 @@ class CoverAgent:
             additional_instructions=args.additional_instructions,
             llm_model=args.model,
             api_base=args.api_base,
-            failed_test_case_visibility = args.failed_test_case_visibility
+            failed_test_case_visibility = args.failed_test_case_visibility,
             use_report_coverage_feature_flag=args.use_report_coverage_feature_flag,
         )
 
