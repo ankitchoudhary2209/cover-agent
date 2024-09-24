@@ -80,7 +80,7 @@ class UnitTestGenerator:
         self.failed_test_runs = []
         self.total_input_token_count = 0
         self.total_output_token_count = 0
-
+        self.failed_test_case_visibility = failed_test_case_visibility
         # Read self.source_file_path into a string
         with open(self.source_file_path, "r") as f:
             self.source_code = f.read()
@@ -575,7 +575,7 @@ class UnitTestGenerator:
                     if "syntax error" in stderr or "SyntaxError" in stderr or "IndentationError" in stderr or "ImportError" in stderr or "[build failed]" in stdout or "[setup failed]" in stdout:
                         with open(self.test_file_path, "w") as test_file:
                             test_file.write(original_content)
-                            self.relevant_line_number_to_insert_tests_after -= len(additional_imports_filtered)
+                            self.relevant_line_number_to_insert_tests_after -= len(additional_imports)
 
                         self.logger.info(f"Skipping a generated test that failed due to Build/Setup Failure")
                         return {
